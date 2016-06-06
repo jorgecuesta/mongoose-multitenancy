@@ -1,0 +1,55 @@
+{
+  "name": "mongoose-multitenancy",
+  "version": "0.1.0",
+  "description": "The best of both worlds Mongoose.discriminator & mongoose-multitenant",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "node_modules/.bin/mocha --reporter spec",
+    "cover": "node_modules/istanbul/lib/cli.js cover node_modules/mocha/bin/_mocha -- -R spec test/*"
+  },
+  "engines": {
+    "node": ">=4.4.5"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jorgecuesta/mongoose-multitenancy.git"
+  },
+  "keywords": [
+    "mongodb",
+    "mongoose",
+    "multitenant",
+    "multitenancy",
+    "discriminator",
+    "mongo"
+  ],
+  "author": "Jorge S. Cuesta <jorge.s.cuesta@gmail.com>",
+  "contributors": [
+    "Jeffrey Soriano <jeffreysoriano5@gmail.com>"
+  ],
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jorgecuesta/mongoose-multitenancy/issues"
+  },
+  "homepage": "https://github.com/jorgecuesta/mongoose-multitenancy#readme",
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "coveralls": "^2.11.9",
+    "istanbul": "^0.4.3",
+    "mocha": "^2.5.3",
+    "mocha-mongoose": "^1.2.0",
+    "mongoose": "^4.4.19",
+    "should": "^2.1.1",
+    "travis-cov": "^0.2.5"
+  },
+  "peerDependencies": {
+    "mongoose": ">=4.x.x"
+  },
+  "config": {
+    "travis-cov": {
+      "threshold": 100
+    }
+  },
+  "dependencies": {
+    "async": "^2.0.0-rc.5"
+  }
+}
