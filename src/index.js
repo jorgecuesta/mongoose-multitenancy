@@ -121,10 +121,7 @@ module.exports = {
             make = function (tenantId, modelName) {
                 var model, pre, preModelName, tenantCollectionName, tenantModelName, uniq, _i, _len;
                 console.log('making %s for %s', modelName, tenantId);
-                if (connection.mtModel.tenants.indexOf(tenantId) === -1) {
-                    console.log('adding %s', tenantId);
-                    connection.mtModel.tenants.push(tenantId);
-                }
+
                 tenantModelName = tenantId + collectionDelimiter + modelName;
                 if (connection.models[tenantModelName] != null) {
                     return connection.models[tenantModelName];
@@ -155,6 +152,11 @@ module.exports = {
                             connection.mtModel(tenantId, pre);
                         }
                     }
+                }
+                //add to list after it was already created via discriminator
+                if (connection.mtModel.tenants.indexOf(tenantId) === -1) {
+                    console.log('adding %s', tenantId);
+                    connection.mtModel.tenants.push(tenantId);
                 }
 
                 return newModel;
