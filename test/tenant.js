@@ -5,7 +5,8 @@
  * Created by jorgecuesta on 3/6/16.
  */
 var dbURI = 'mongodb://localhost/tenant',
-    should = require('chai').should(),
+    chai = require('chai'),
+    expect = chai.expect,
     async = require('async'),
     mongoose = require('mongoose'),
     multitenancy = require('../src/index'),
@@ -14,10 +15,17 @@ var dbURI = 'mongodb://localhost/tenant',
 multitenancy.setup();
 
 var LogSchema = new mongoose.Schema({
-    entry: String,
-    date: {
-        type: Date,
-        default: Date.now
+    entry: {
+        type: String,
+        required: true
+    },
+    user: {
+        type: new mongoose.Schema({
+            username: {
+                type: String,
+                required: true
+            }
+        })
     }
 });
 
@@ -34,8 +42,17 @@ describe('Multitenancy', function () {
     it('Should create model for different tenants', function (done) {
         var LogTenant1 = mongoose.mtModel('tenant1.Log'), LogTenant2 = mongoose.mtModel('tenant2.Log');
 
-        LogTenant1.getTenantId().should.equal('tenant1');
-        LogTenant2.getTenantId().should.equal('tenant2');
+        // Model can be read.
+        expect(LogTenant1).to.exist;
+        expect(LogTenant2).to.exist;
+
+        // Statics getTenantId return right values.
+        expect(LogTenant1.getTenantId()).to.be.equal('tenant1');
+        expect(LogTenant2.getTenantId()).to.be.equal('tenant2');
+
+        // Static getModel return right models.
+        expect(LogTenant1.getModel('Log')).to.be.equal(LogTenant1);
+        expect(LogTenant2.getModel('Log')).to.be.equal(LogTenant2);
 
         done();
     });
@@ -46,48 +63,68 @@ describe('Multitenancy', function () {
         async.parallel([
             function createTenant1(done) {
                 LogTenant1.create({
-                    entry: 'Log on tenant 1'
+                    entry: 'Log on tenant 1',
+                    user: {
+                        username: 'foo@bar.io'
+                    }
                 }, function (error, log) {
-                    (error === null).should.be.true;
-                    log.entry.should.equal('Log on tenant 1');
+                    expect(error).to.not.exist;
+                    expect(log).to.be.a('object');
+                    expect(log.entry).to.be.equal('Log on tenant 1');
+                    expect(log.user).to.be.a('object');
+                    expect(log.user).to.have.property('username').that.is.an('string').that.is.equal('foo@bar.io');
+                    expect(log.collection.collectionName).to.be.equal('tenant1__logs');
                     done(null, true);
                 });
             },
             function createTenant2(done) {
                 LogTenant2.create({
-                    entry: 'Log on tenant 2'
+                    entry: 'Log on tenant 2',
+                    user: {
+                        username: 'bar@simpson.io'
+                    }
                 }, function (error, log) {
-                    (error === null).should.be.true;
-                    log.entry.should.equal('Log on tenant 2');
+                    expect(error).to.not.exist;
+                    expect(log).to.be.a('object');
+                    expect(log.entry).to.be.equal('Log on tenant 2');
+                    expect(log.user).to.be.a('object');
+                    expect(log.user).to.have.property('username').that.is.an('string').that.is.equal('bar@simpson.io');
+                    expect(log.collection.collectionName).to.be.equal('tenant2__logs');
                     done(null, true);
                 });
             }
         ], function onTenantCreationComplete(error, results) {
-            (error === null).should.be.true;
-            results.every(function (v) {
+            expect(error).to.not.exist;
+
+            var valid = results.every(function (v) {
                 return v
-            }).should.ok;
+            });
+
+            expect(valid).to.be.true;
 
             async.parallel([
                 function countLogsTenant1(done) {
                     LogTenant1.count(function (error, count) {
-                        (error === null).should.be.true;
-                        count.should.equal(1);
+                        expect(error).to.not.exist;
+                        expect(count).to.be.equal(1);
                         done(null, true);
                     });
                 },
                 function countLogsTenant2(done) {
                     LogTenant2.count(function (error, count) {
-                        (error === null).should.be.true;
-                        count.should.equal(1);
+                        expect(error).to.not.exist;
+                        expect(count).to.be.equal(1);
                         done(null, true);
                     });
                 }
             ], function (error, results) {
-                (error === null).should.be.true;
-                results.every(function (v) {
+                expect(error).to.not.exist;
+
+                var valid = results.every(function (v) {
                     return v
-                }).should.ok;
+                });
+
+                expect(valid).to.be.true;
 
                 finish();
             });
