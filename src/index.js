@@ -14,6 +14,8 @@ _ = require('lodash');
 
 require('./discriminator');
 
+const MODEL_DELIMITER = '.';
+
 module.exports = {
     collectionDelimiter: '__',
     connection: mongoose,
@@ -63,7 +65,7 @@ module.exports = {
             //     }
             //   }
             //   newPath.ref = tenantId + collectionDelimiter + path.options.ref;
-            //   precompile.push(tenantId + '.' + path.options.ref);
+            //   precompile.push(tenantId + MODEL_DELIMITER + path.options.ref);
             //   return newPath;
             // };
             // extendSchemaWithTenantId = function(tenantId, schema) {
@@ -115,28 +117,33 @@ module.exports = {
                     return this.schema.$tenantId;
                 };
                 schema.statics.getModel = schema.methods.getModel = function (name) {
-                    return connection.mtModel(this.getTenantId() + '.' + name);
+                    return connection.mtModel(this.getTenantId() + MODEL_DELIMITER + name);
                 };
             };
             make = function (tenantId, modelName) {
-                var model, pre, preModelName, tenantCollectionName, tenantModelName, uniq, _i, _len;
-                console.log('making %s for %s', modelName, tenantId);
+                var model, pre, preModelName, tenantCollectionName, tenantModelName, uniq, _i, _len, newSchema, discName, newModel;
 
-                tenantModelName = tenantId + collectionDelimiter + modelName;
+                if (connection.mtModel.tenants.indexOf(tenantId) === -1) {
+                    connection.mtModel.tenants.push(tenantId);
+                }
+
+                // if we already build this model last time only return it.
+                tenantModelName = tenantId + MODEL_DELIMITER + modelName;
                 if (connection.models[tenantModelName] != null) {
                     return connection.models[tenantModelName];
                 }
+
                 model = this.model(modelName);
                 tenantCollectionName = tenantId + collectionDelimiter + model.collection.name;
 
-                var newSchema = mongoose.Schema({}, {
+                newSchema = mongoose.Schema({}, {
                     collection: tenantCollectionName
                 });
 
                 newSchema.$tenantId = tenantId;
                 newSchema.plugin(multitenantSchemaPlugin);
 
-                var newModel = model.discriminator(tenantId + '.' + modelName, newSchema);
+                var newModel = model.discriminator(tenantModelName, newSchema);
 
                 if (connection.mtModel.goingToCompile.indexOf(tenantModelName) < 0) {
                     connection.mtModel.goingToCompile.push(tenantModelName);
@@ -153,11 +160,7 @@ module.exports = {
                         }
                     }
                 }
-                //add to list after it was already created via discriminator
-                if (connection.mtModel.tenants.indexOf(tenantId) === -1) {
-                    console.log('adding %s', tenantId);
-                    connection.mtModel.tenants.push(tenantId);
-                }
+
 
                 return newModel;
             };
@@ -168,12 +171,12 @@ module.exports = {
                 tenants.reverse();
                 args = arguments;
                 tenantId = _.find(tenants, function (tenant) {
-                    return new RegExp('^' + tenant + '.').test(args[0]);
+                    return new RegExp('^' + tenant + MODEL_DELIMITER).test(args[0]);
                 });
                 if (!tenantId) {
-                    parts = arguments[0].split('.');
+                    parts = arguments[0].split(MODEL_DELIMITER);
                     modelName = parts.pop();
-                    tenantId = parts.join('.');
+                    tenantId = parts.join(MODEL_DELIMITER);
 
                     return make.call(this, tenantId, modelName);
                 } else {
@@ -198,7 +201,6 @@ module.exports = {
         connection.mtModel.goingToCompile = [];
         connection.mtModel.tenants = [];
         return connection.mtModel.addTenant = function (tenantId) {
-            console.log('adding tenant %s', tenantId);
             return connection.mtModel.tenants.push(tenantId);
         };
     }

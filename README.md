@@ -11,17 +11,40 @@ The best of both worlds [Mongoose.discriminator](http://mongoosejs.com/docs/disc
 This package uses the mongoose discriminator functionality to extend schemas and uses the logic of mongoose-multitenant to create the models.
 Right now multitenancy just works with collections.
 
-Installation
+### Installation
 
-npm install mongoose-multitenancy
+`npm install mongoose-multitenancy`
 
-@NOTE: It requires mongoose as peerDependency.
-Usage
+> @NOTE: It requires mongoose as peerDependency.
 
+### Usage
+
+```javascript
 var mongoose = require('mongoose');
 
 // It automatically adds logic to mongoose.
-require('mongoose-multitenancy');
+
+var multitenancy = require('mongoose-multitenancy');
+
+multitenancy.setup();
+
+var LogSchema = new mongoose.Schema({
+    entry: {
+        type: String,
+        required: true
+    },
+    user: {
+        type: new mongoose.Schema({
+            username: {
+                type: String,
+                required: true
+            }
+        })
+    }
+});
+
+mongoose.mtModel('Log', LogSchema);
+```
 
 Tests
 
