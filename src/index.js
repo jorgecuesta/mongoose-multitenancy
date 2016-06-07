@@ -160,8 +160,7 @@ module.exports = {
                         }
                     }
                 }
-
-
+                
                 return newModel;
             };
             if (arguments.length === 1) {
@@ -180,10 +179,8 @@ module.exports = {
 
                     return make.call(this, tenantId, modelName);
                 } else {
-                    // modelName = arguments[0].slice(tenantId.length + 1);
-                    //
-                    // return make.call(this, tenantId, modelName);
-                    return this.model(arguments[0]);
+                    modelName = arguments[0].slice(tenantId.length + 1);
+                    return make.call(this, tenantId, modelName);
                 }
 
             } else if (arguments.length === 2) {

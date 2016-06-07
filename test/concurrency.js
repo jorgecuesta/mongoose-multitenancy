@@ -11,14 +11,14 @@ var dbURI = 'mongodb://localhost/tenant',
 
 multitenancy.setup();
 
-var LogSchema = new mongoose.Schema({
+var DummySchema = new mongoose.Schema({
     entry: {
         type: String,
         required: true
     }
 });
 
-mongoose.mtModel('Log', LogSchema);
+mongoose.mtModel('Dummy', DummySchema);
 
 describe('Multitenancy', function () {
 
@@ -31,34 +31,36 @@ describe('Multitenancy', function () {
     it('Should not break', function (finish) {
         var fn, tasks = [];
 
+        const TOTAL = 20;
+
         fn = function (done) {
             "use strict";
-            var model = mongoose.mtModel('tenant1.Log');
+            var model = mongoose.mtModel('tenant1.Dummy');
 
             expect(model).to.exist;
             expect(model.getTenantId()).to.be.equal('tenant1');
-            expect(model.collection.collectionName).to.be.equal('tenant1__logs');
+            expect(model.collection.collectionName).to.be.equal('tenant1__dummies');
 
             model.create({
                 entry: 'Foo'
             }, done);
         };
 
-        for (var i = 0; i < 200; i++) {
+        for (var i = 0; i < TOTAL; i++) {
             tasks.push(fn.bind(i));
         }
 
         async.parallel(tasks, function (error, results) {
             expect(error).to.not.exist;
             expect(results).to.be.instanceof(Array);
-            expect(results.length).to.be.equal(200);
+            expect(results.length).to.be.equal(TOTAL);
 
-            var model = mongoose.mtModel('tenant1.Log');
+            var model = mongoose.mtModel('tenant1.Dummy');
 
             model.count(function(error, count){
                 expect(error).to.not.exist;
                 expect(count).to.be.a('number');
-                expect(count).to.be.equal(200);
+                expect(count).to.be.equal(TOTAL);
 
                 finish();
             });
