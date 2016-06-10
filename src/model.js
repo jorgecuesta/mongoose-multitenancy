@@ -19,7 +19,7 @@ mongoose.Model.prototype.model = function model(name) {
     var self = this;
 
     // check if model incoming be working under multi tenant approach.
-    if(self.$tenantId && self.getModel && typeof self.getModel === 'function'){
+    if(self.schema && self.schema.$tenantId && self.getModel && typeof self.getModel === 'function'){
         // in this case return a tenancy model. ;)
         return self.getModel(name);
     }

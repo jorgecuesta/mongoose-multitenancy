@@ -29,7 +29,12 @@ var LogSchema = new mongoose.Schema({
     }
 });
 
+var FooSchema = new mongoose.Schema({
+    text: String
+});
+
 mongoose.mtModel('Log', LogSchema);
+mongoose.mtModel('Foo', FooSchema);
 
 describe('Multitenancy', function () {
 
@@ -127,6 +132,49 @@ describe('Multitenancy', function () {
                 expect(valid).to.be.true;
 
                 finish();
+            });
+        });
+    });
+
+    it('Should return models with right tenant using Model.model methodology.', function (finish) {
+        var Log = mongoose.mtModel('a.Log'),
+            Foo = mongoose.mtModel('a.Foo');
+
+        expect(Foo).to.be.equal(Log.model('Foo'));
+        expect(Log).to.be.equal(Foo.model('Log'));
+
+        finish();
+    });
+
+    it('Should return model with right tenant using document.model methodology', function (finish) {
+        var Log = mongoose.mtModel('b.Log');
+
+        Log.create({
+            entry: 'Log on tenant 1',
+            user: {
+                username: 'foo@bar.io'
+            }
+        }, function (error, document) {
+            expect(error).to.not.exist;
+
+            var Foo = document.model('Foo');
+
+            expect(Foo).to.exist;
+
+            Foo.create({text: 'a'}, function (error, fooDoc) {
+                expect(error).to.not.exist;
+                expect(fooDoc).to.exist;
+
+                expect(fooDoc.text).to.be.a('string');
+                expect(fooDoc.text).to.be.equal('a');
+
+                fooDoc.model('Foo').find({text: 'a'}, function (error, docs) {
+                    expect(error).to.not.exist;
+                    expect(docs).to.be.a('array');
+                    expect(docs.length).to.be.equal(1);
+                    expect(docs[0].text).to.be.equal('a');
+                    finish();
+                });
             });
         });
     });
