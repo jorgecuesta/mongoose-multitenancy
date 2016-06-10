@@ -13,6 +13,7 @@ mongoose = require('mongoose');
 _ = require('lodash');
 
 require('./discriminator');
+require('./model');
 
 const MODEL_DELIMITER = '.';
 
