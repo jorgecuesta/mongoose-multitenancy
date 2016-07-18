@@ -146,6 +146,13 @@ module.exports = {
 
                 var newModel = model.discriminator(tenantModelName, newSchema);
 
+                // Prevent duplicated hooks.
+                _.forOwn(newModel.hooks, function (value, outerKey) {
+                    _.forOwn(newModel.hooks[outerKey], function (val, key) {
+                        newModel.hooks[outerKey][key] = _.difference(val, model.hooks[outerKey][key]);
+                    })
+                });
+
                 if (connection.mtModel.goingToCompile.indexOf(tenantModelName) < 0) {
                     connection.mtModel.goingToCompile.push(tenantModelName);
                 }
