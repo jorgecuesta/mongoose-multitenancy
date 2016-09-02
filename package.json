@@ -1,6 +1,6 @@
 {
   "name": "mongoose-multitenancy",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "description": "The best of both worlds Mongoose.discriminator & mongoose-multitenant",
   "main": "src/index.js",
   "scripts": {
