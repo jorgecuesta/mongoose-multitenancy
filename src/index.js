@@ -47,72 +47,64 @@ module.exports = {
         connection.mtModel = function (name, schema, collectionName) {
             var args, extendPathWithTenantId, extendSchemaWithTenantId, make, modelName, multitenantSchemaPlugin, parts, precompile, tenantId, tenants;
             precompile = [];
-            // extendPathWithTenantId = function(tenantId, path) {
-            //   var key, newPath, val, _ref;
-            //   if (path.instance !== 'ObjectID' && path.instance !== mongoose.Schema.Types.ObjectId) {
-            //     return false;
-            //   }
-            //   if ((path.options.$tenant == null) || path.options.$tenant !== true) {
-            //     return false;
-            //   }
-            //   newPath = {
-            //     type: mongoose.Schema.Types.ObjectId
-            //   };
-            //   _ref = path.options;
-            //   for (key in _ref) {
-            //     val = _ref[key];
-            //     if (key !== 'type') {
-            //       newPath[key] = _.clone(val, true);
-            //     }
-            //   }
-            //   newPath.ref = tenantId + collectionDelimiter + path.options.ref;
-            //   precompile.push(tenantId + MODEL_DELIMITER + path.options.ref);
-            //   return newPath;
-            // };
-            // extendSchemaWithTenantId = function(tenantId, schema) {
-            //   var config, extension, newPath, newSchema, newSubSchema, prop, _ref;
-            //   extension = {};
-            //     // debugger;
-            //     newSchema = _.cloneDeep(_.omit(schema), ['callQueue', 'hooks']);
-            //   newSchema.callQueue.forEach(function(k) {
-            //     var args, key, val, _ref, _results;
-            //     args = [];
-            //     _ref = k[1];
-            //     _results = [];
-            //     for (key in _ref) {
-            //       val = _ref[key];
-            //       args.push(val);
-            //       _results.push(k[1] = args);
-            //     }
-            //     return _results;
-            //   });
-            //   _ref = schema.paths;
-            //   for (prop in _ref) {
-            //     config = _ref[prop];
-            //     if (config.options.type instanceof Array) {
-            //       if (config.schema != null) {
-            //         newSubSchema = extendSchemaWithTenantId(tenantId, config.schema);
-            //         newSchema.path(prop, [newSubSchema]);
-            //       } else {
-            //         newPath = extendPathWithTenantId(tenantId, config.caster);
-            //         if (newPath) {
-            //           newSchema.path(prop, [newPath]);
-            //         }
-            //       }
-            //     } else {
-            //       if (config.schema != null) {
-            //         newSubSchema = extendSchemaWithTenantId(tenantId, config.schema);
-            //         newSchema.path(prop, newSubSchema);
-            //       } else {
-            //         newPath = extendPathWithTenantId(tenantId, config);
-            //         if (newPath) {
-            //           newSchema.path(prop, newPath);
-            //         }
-            //       }
-            //     }
-            //   }
-            //   return newSchema;
-            // };
+
+            extendPathWithTenantId = function (tenantId, path) {
+                var key, newPath, val, _ref;
+                if (path.instance !== 'ObjectID' && path.instance !== mongoose.Schema.Types.ObjectId) {
+                    return false;
+                }
+                if ((path.options.$tenant == null) || path.options.$tenant !== true) {
+                    return false;
+                }
+                newPath = {
+                    type: mongoose.Schema.Types.ObjectId
+                };
+                _ref = path.options;
+                for (key in _ref) {
+                    if (!_ref.hasOwnProperty(key))continue;
+                    val = _ref[key];
+                    if (key !== 'type') {
+                        newPath[key] = _.clone(val, true);
+                    }
+                }
+                newPath.ref = tenantId + MODEL_DELIMITER + path.options.ref;
+                precompile.push(tenantId + MODEL_DELIMITER + path.options.ref);
+                return newPath;
+            };
+
+            extendSchemaWithTenantId = function (tenantId, schema) {
+                var config, newPath, newSchema = this, newSubSchema, prop, _ref;
+
+                _ref = schema.paths;
+
+                for (prop in _ref) {
+                    if (!_ref.hasOwnProperty(prop))continue;
+
+                    config = _ref[prop];
+                    if (config.options.type instanceof Array) {
+                        if (config.schema != null) {
+                            newSubSchema = extendSchemaWithTenantId.call(newSchema, tenantId, config.schema);
+                            newSchema.path(prop, [newSubSchema]);
+                        } else {
+                            newPath = extendPathWithTenantId(tenantId, config.caster);
+                            if (newPath) {
+                                newSchema.path(prop, [newPath]);
+                            }
+                        }
+                    } else {
+                        if (config.schema != null) {
+                            newSubSchema = extendSchemaWithTenantId(tenantId, config.schema);
+                            newSchema.path(prop, newSubSchema);
+                        } else {
+                            newPath = extendPathWithTenantId(tenantId, config);
+                            if (newPath) {
+                                newSchema.path(prop, newPath);
+                            }
+                        }
+                    }
+                }
+            };
+
             multitenantSchemaPlugin = function (schema, options) {
                 schema.statics.getTenantId = schema.methods.getTenantId = function () {
                     return this.schema.$tenantId;
@@ -122,7 +114,8 @@ module.exports = {
                 };
             };
             make = function (tenantId, modelName) {
-                var model, pre, preModelName, tenantCollectionName, tenantModelName, uniq, _i, _len, newSchema, discName, newModel;
+                var model, pre, preModelName, tenantCollectionName, tenantModelName, uniq, _i, _len, newSchema,
+                    discName, newModel;
 
                 if (connection.mtModel.tenants.indexOf(tenantId) === -1) {
                     connection.mtModel.tenants.push(tenantId);
@@ -140,6 +133,8 @@ module.exports = {
                 newSchema = mongoose.Schema({}, {
                     collection: tenantCollectionName
                 });
+
+                extendSchemaWithTenantId.call(newSchema, tenantId, model.schema);
 
                 newSchema.$tenantId = tenantId;
                 newSchema.plugin(multitenantSchemaPlugin);
@@ -168,7 +163,7 @@ module.exports = {
                         }
                     }
                 }
-                
+
                 return newModel;
             };
             if (arguments.length === 1) {
