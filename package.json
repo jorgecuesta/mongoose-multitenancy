@@ -49,6 +49,7 @@
     }
   },
   "dependencies": {
-    "async": "^2.0.0-rc.5"
+    "async": "^2.0.0-rc.5",
+    "mongoose-locale": "^1.0.4"
   }
 }
