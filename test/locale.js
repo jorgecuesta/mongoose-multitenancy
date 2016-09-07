@@ -60,9 +60,7 @@ describe('MultitenancyLocale', function () {
         }, function (error, foo) {
             expect(error).to.not.exist;
             expect(foo).to.be.a('object');
-            expect(foo.entry).to.be.equal('Foo on tenant 1');
-            expect(foo.user).to.be.a('object');
-            expect(foo.user).to.have.property('username').that.is.an('string').that.is.equal('foo@bar.io');
+            expect(foo.getPropertyLocalised('text', 'en-US')).to.be.equal('Foo on tenant 1');
             expect(foo.collection.collectionName).to.be.equal('tenant1__foos');
 
             finish();

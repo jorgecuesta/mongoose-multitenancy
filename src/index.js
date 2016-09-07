@@ -61,7 +61,7 @@ module.exports = {
                 };
                 _ref = path.options;
                 for (key in _ref) {
-                    if (!_ref.hasOwnProperty(key))continue;
+                    if (!_ref.hasOwnProperty(key)) continue;
                     val = _ref[key];
                     if (key !== 'type') {
                         newPath[key] = _.clone(val, true);
@@ -69,11 +69,12 @@ module.exports = {
                 }
                 newPath.ref = tenantId + MODEL_DELIMITER + path.options.ref;
                 precompile.push(tenantId + MODEL_DELIMITER + path.options.ref);
+
                 return newPath;
             };
 
             extendSchemaWithTenantId = function (tenantId, schema) {
-                var config, newPath, newSchema = this, newSubSchema, prop, _ref;
+                var config, newPath, newSchema = this, newSubSchema = null, prop, _ref, isArray;
 
                 _ref = schema.paths;
 
@@ -81,25 +82,35 @@ module.exports = {
                     if (!_ref.hasOwnProperty(prop))continue;
 
                     config = _ref[prop];
-                    if (config.options.type instanceof Array) {
-                        if (config.schema != null) {
-                            newSubSchema = extendSchemaWithTenantId.call(newSchema, tenantId, config.schema);
-                            newSchema.path(prop, [newSubSchema]);
-                        } else {
-                            newPath = extendPathWithTenantId(tenantId, config.caster);
-                            if (newPath) {
-                                newSchema.path(prop, [newPath]);
-                            }
-                        }
+
+                    isArray = (config.options.type instanceof Array);
+
+                    /**
+                     * This is what is searched
+                     * {
+                     *  user: [{
+                     *      type: ObjectId,
+                     *      ref: 'User',
+                     *      $tenant: true
+                     *  }],
+                     *  account: {
+                     *      type: ObjectId,
+                     *      ref: 'Account',
+                     *      $tenant: true
+                     *  },
+                     *  rol: {
+                     *      type: ObjectId,
+                     *      ref: 'Rol'
+                     *  }
+                     * }
+                     */
+
+                    if (config.schema) {
+                        extendSchemaWithTenantId.call(newSchema, tenantId, config.schema);
                     } else {
-                        if (config.schema != null) {
-                            newSubSchema = extendSchemaWithTenantId(tenantId, config.schema);
-                            newSchema.path(prop, newSubSchema);
-                        } else {
-                            newPath = extendPathWithTenantId(tenantId, config);
-                            if (newPath) {
-                                newSchema.path(prop, newPath);
-                            }
+                        newPath = extendPathWithTenantId(tenantId, isArray ? config.caster : config);
+                        if (newPath) {
+                            newSchema.path(prop, isArray ? [newPath] : newPath);
                         }
                     }
                 }

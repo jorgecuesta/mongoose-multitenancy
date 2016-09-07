@@ -41,7 +41,7 @@
     "travis-cov": "^0.2.5"
   },
   "peerDependencies": {
-    "mongoose": ">=4.x.x"
+    "mongoose": "^4.x.x"
   },
   "config": {
     "travis-cov": {
