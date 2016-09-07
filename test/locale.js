@@ -15,7 +15,7 @@ var dbURI = 'mongodb://localhost/tenant',
 
 multitenancy.setup();
 
-var FooSchema = new mongoose.Schema({
+var LocaleSchema = new mongoose.Schema({
     text: {
         type: String,
         locale: true,
@@ -23,11 +23,11 @@ var FooSchema = new mongoose.Schema({
     }
 });
 
-FooSchema.plugin(locale, {
+LocaleSchema.plugin(locale, {
     recursive: false
 });
 
-mongoose.mtModel('Foo', FooSchema);
+mongoose.mtModel('Locale', LocaleSchema);
 
 describe('MultitenancyLocale', function () {
 
@@ -38,30 +38,32 @@ describe('MultitenancyLocale', function () {
     });
 
     it('Should create model for different tenants', function (done) {
-        var FooTenant1 = mongoose.mtModel('tenant1.Foo');
+
+
+        var LocaleTenant1 = mongoose.mtModel('tenant1.Locale');
 
         // Model can be read.
-        expect(FooTenant1).to.exist;
+        expect(LocaleTenant1).to.exist;
 
         // Statics getTenantId return right values.
-        expect(FooTenant1.getTenantId()).to.be.equal('tenant1');
+        expect(LocaleTenant1.getTenantId()).to.be.equal('tenant1');
 
         // Static getModel return right model.
-        expect(FooTenant1.getModel('Foo')).to.be.equal(FooTenant1);
+        expect(LocaleTenant1.getModel('Locale')).to.be.equal(LocaleTenant1);
 
         done();
     });
 
     it('Should create doc', function (finish) {
-        var FooTenant1 = mongoose.mtModel('tenant1.Foo');
+        var LocaleTenant1 = mongoose.mtModel('tenant1.Locale');
 
-        FooTenant1.create({
-            text: [{lg: 'en-US', value: 'Foo on tenant 1'}]
+        LocaleTenant1.create({
+            text: [{lg: 'en-US', value: 'Locale on tenant 1'}]
         }, function (error, foo) {
             expect(error).to.not.exist;
             expect(foo).to.be.a('object');
-            expect(foo.getPropertyLocalised('text', 'en-US')).to.be.equal('Foo on tenant 1');
-            expect(foo.collection.collectionName).to.be.equal('tenant1__foos');
+            expect(foo.getPropertyLocalised('text', 'en-US')).to.be.equal('Locale on tenant 1');
+            expect(foo.collection.collectionName).to.be.equal('tenant1__locales');
 
             finish();
         });
