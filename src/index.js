@@ -74,12 +74,12 @@ module.exports = {
             };
 
             extendSchemaWithTenantId = function (tenantId, schema) {
-                var config, newPath, newSchema = this, newSubSchema = null, prop, _ref, isArray;
+                var config, newPath, newSchema = this, prop, _ref, isArray;
 
                 _ref = schema.paths;
 
                 for (prop in _ref) {
-                    if (!_ref.hasOwnProperty(prop))continue;
+                    if (!_ref.hasOwnProperty(prop)) continue;
 
                     config = _ref[prop];
 
@@ -198,7 +198,7 @@ module.exports = {
                 }
 
             } else if (arguments.length === 2) {
-                if (arguments[1] instanceof mongoose.Schema) {
+                if (arguments[1] instanceof mongoose.Schema || _.isPlainObject(arguments[1])) {
                     return this.model(arguments[0], arguments[1]);
                 } else {
                     return make.call(this, arguments[0], arguments[1]);
