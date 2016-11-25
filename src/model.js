@@ -35,3 +35,5 @@ mongoose.Model.prototype.model = function model(name) {
     // Normal flow should return model as is.
     return this.db.model(name);
 };
+
+module.exports = mongoose.Model.prototype.model;

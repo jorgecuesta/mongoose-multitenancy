@@ -150,3 +150,5 @@ var applyStatics = function (model, schema) {
         model[i] = schema.statics[i];
     }
 };
+
+module.exports = mongoose.Model.discriminator;

@@ -6,14 +6,14 @@
  @co-author Jeffrey Soriano <jeffreysoriano5@gmail.com>
  */
 
-var mongoose, _;
+var mongoose, _, discriminator, modelFn;
 
 mongoose = require('mongoose');
 
 _ = require('lodash');
 
-require('./discriminator');
-require('./model');
+discriminator = require('./discriminator');
+modelFn = require('./model');
 
 const MODEL_DELIMITER = '.';
 
@@ -21,6 +21,7 @@ module.exports = {
     collectionDelimiter: '__',
     connection: mongoose,
     setup: function () {
+
         var collectionDelimiter, connection, self;
         self = this;
         if (arguments.length === 1 && arguments[0]) {
@@ -42,6 +43,22 @@ module.exports = {
                 this.connection = arguments[1];
             }
         }
+
+        if (this.connection.version !== mongoose.version) {
+            console.warn('MULTIPLE VERSIONS OF MONGOOSE CAN GET UNPREDICTABLE ERRORS.');
+            console.log('USING', this.connection.version);
+        }
+
+        if (this.connection.Model.discriminator !== discriminator) {
+            console.warn('REPLACING DEFAULT DISCRIMINATOR TO FORCE MULTITENANCY FUNCTIONALITY.');
+            this.connection.Model.discriminator = discriminator;
+        }
+
+        if (this.connection.Model.prototype.model !== modelFn) {
+            console.warn('WRAPPING DEFAULT mongoose.model TO FORCE MULTITENANCY FUNCTIONALITY.');
+            this.connection.Model.prototype.model = modelFn;
+        }
+
         connection = this.connection;
         collectionDelimiter = this.collectionDelimiter;
         connection.mtModel = function (name, schema, collectionName) {
@@ -132,7 +149,6 @@ module.exports = {
                 if (connection.mtModel.tenants.indexOf(tenantId) === -1) {
                     connection.mtModel.tenants.push(tenantId);
                 }
-                debugger;
                 // if we already build this model last time only return it.
                 tenantModelName = tenantId + MODEL_DELIMITER + modelName;
                 if (connection.models[tenantModelName] != null) {
@@ -203,7 +219,6 @@ module.exports = {
                 if (arguments[1] instanceof connection.Schema || _.isPlainObject(arguments[1])) {
                     return this.model(arguments[0], arguments[1]);
                 } else {
-                    debugger;
                     return make.call(this, arguments[0], arguments[1]);
                 }
             } else if (arguments.length === 3) {
