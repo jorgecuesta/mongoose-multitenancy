@@ -50,14 +50,14 @@ module.exports = {
 
             extendPathWithTenantId = function (tenantId, path) {
                 var key, newPath, val, _ref;
-                if (path.instance !== 'ObjectID' && path.instance !== mongoose.Schema.Types.ObjectId) {
+                if (path.instance !== 'ObjectID' && path.instance !== connection.Schema.Types.ObjectId) {
                     return false;
                 }
                 if ((path.options.$tenant == null) || path.options.$tenant !== true) {
                     return false;
                 }
                 newPath = {
-                    type: mongoose.Schema.Types.ObjectId
+                    type: connection.Schema.Types.ObjectId
                 };
                 _ref = path.options;
                 for (key in _ref) {
@@ -125,13 +125,14 @@ module.exports = {
                 };
             };
             make = function (tenantId, modelName) {
+
                 var model, pre, preModelName, tenantCollectionName, tenantModelName, uniq, _i, _len, newSchema,
                     discName, newModel;
 
                 if (connection.mtModel.tenants.indexOf(tenantId) === -1) {
                     connection.mtModel.tenants.push(tenantId);
                 }
-
+                debugger;
                 // if we already build this model last time only return it.
                 tenantModelName = tenantId + MODEL_DELIMITER + modelName;
                 if (connection.models[tenantModelName] != null) {
@@ -141,7 +142,7 @@ module.exports = {
                 model = this.model(modelName);
                 tenantCollectionName = tenantId + collectionDelimiter + model.collection.name;
 
-                newSchema = mongoose.Schema({}, {
+                newSchema = connection.Schema({}, {
                     collection: tenantCollectionName
                 });
 
@@ -169,7 +170,7 @@ module.exports = {
                         pre = uniq[_i];
                         pre = pre.slice(tenantId.length + 1);
                         preModelName = tenantId + collectionDelimiter + pre;
-                        if ((connection.models[preModelName] == null) && mongoose.mtModel.goingToCompile.indexOf(preModelName) < 0) {
+                        if ((connection.models[preModelName] == null) && connection.mtModel.goingToCompile.indexOf(preModelName) < 0) {
                             connection.mtModel(tenantId, pre);
                         }
                     }
@@ -198,9 +199,11 @@ module.exports = {
                 }
 
             } else if (arguments.length === 2) {
-                if (arguments[1] instanceof mongoose.Schema || _.isPlainObject(arguments[1])) {
+
+                if (arguments[1] instanceof connection.Schema || _.isPlainObject(arguments[1])) {
                     return this.model(arguments[0], arguments[1]);
                 } else {
+                    debugger;
                     return make.call(this, arguments[0], arguments[1]);
                 }
             } else if (arguments.length === 3) {
