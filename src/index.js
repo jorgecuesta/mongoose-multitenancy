@@ -17,7 +17,7 @@ discriminator = require('./discriminator');
 modelFn = require('./model');
 
 const COLLECTION_DELIMITER = '__',
-      MODEL_DELIMITER = '.';
+      MODEL_DELIMITER      = '.';
 
 module.exports = {
   collectionDelimiter: null,
@@ -28,7 +28,7 @@ module.exports = {
 
     if (_.isString(options.collectionDelimiter)) {
       this.collectionDelimiter = options.collectionDelimiter;
-    }else this.collectionDelimiter = COLLECTION_DELIMITER;
+    } else this.collectionDelimiter = COLLECTION_DELIMITER;
 
     if (_.isString(options.modelDelimiter)) {
       this.modelDelimiter = options.modelDelimiter;
@@ -185,6 +185,25 @@ module.exports = {
         newSchema.$tenantId = tenantId;
         newSchema.plugin(multitenantSchemaPlugin);
 
+        if (model.schema.options.tenantPlugins &&
+          _.isArray(model.schema.options.tenantPlugins)) {
+          model.schema.options.tenantPlugins.forEach(function(plugin) {
+            if (!_.isFunction(plugin.register)) {
+              throw new Error([
+                'tenantPlugins should be an array with object. Those objects',
+                ' should have register key with plugin function and optionally',
+                ' option key with options to send plugin.',
+              ].join());
+            }
+
+            newSchema.plugin(plugin.register, plugin.options);
+          });
+        } else if (model.schema.options.tenantPlugins) {
+          throw new Error([
+            'tenantPlugins should be an array.',
+          ].join());
+        }
+
         newModel = model.discriminator(tenantModelName, newSchema);
 
         // Prevent duplicated hooks.
@@ -244,10 +263,9 @@ module.exports = {
 
         if (arguments[1] instanceof connection.Schema ||
           _.isPlainObject(arguments[1])) {
-          let baseSchema, model, schema;
+          let baseSchema, model, schema = arguments[1];
 
           if (arguments[1].options.tenantPlugins) {
-            schema = arguments[1];
             baseSchema = schema.clone();
             schema.options.tenantPlugins.forEach(function(plugin) {
               schema.plugin(plugin.register, plugin.options);
