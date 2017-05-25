@@ -41,8 +41,6 @@ describe('Multitenancy', function() {
   });
 
   beforeEach(function(done) {
-    mongoose._models = {};
-
     if (mongoose.connection.db) return done();
 
     mongoose.connect(dbURI, done);

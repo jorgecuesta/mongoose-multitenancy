@@ -9,6 +9,27 @@ describe('Test Suite', function() {
     });
   });
 
+  describe('Model Concurrency', function() {
+    after(function() {
+      mongoose._models = {};
+    });
+    require('./concurrency');
+  });
+
+  describe('Model Population', function() {
+    after(function() {
+      mongoose._models = {};
+    });
+    require('./population');
+  });
+
+  describe('Model With locale plugin', function() {
+    after(function() {
+      mongoose._models = {};
+    });
+    require('./locale');
+  });
+
   describe('Model Delimiter', function() {
     after(function() {
       mongoose._models = {};
