@@ -5,17 +5,23 @@ let mongoose = require('mongoose'),
     utils    = require('mongoose/lib/utils');
 
 mongoose.Model.discriminator = function discriminator(name, schema) {
+  // Using this because if you want register tenant plugins we need know
+  // base schema before register same plugin to root level model.
+  // This baseSchema is just an schema.clone() native of mongoose.
+  // Is set on mongoose.mtModel('Foo', schema);
+  let baseSchema = this.baseSchema ? this.baseSchema : this.schema;
+
   if (!(schema && schema.instanceOfSchema)) {
     throw new Error('You must pass a valid discriminator Schema');
   }
 
-  if (this.schema.discriminatorMapping &&
-    !this.schema.discriminatorMapping.isRoot) {
+  if (baseSchema.discriminatorMapping &&
+    !baseSchema.discriminatorMapping.isRoot) {
     throw new Error('Discriminator "' + name +
       '" can only be a discriminator of the root model');
   }
 
-  let key = this.schema.options.discriminatorKey;
+  let key = baseSchema.options.discriminatorKey;
   if (schema.path(key)) {
     throw new Error('Discriminator "' + name +
       '" cannot have field with name "' + key + '"');
@@ -82,14 +88,14 @@ mongoose.Model.discriminator = function discriminator(name, schema) {
   }
 
   // merges base schema into new discriminator schema and sets new type field.
-  merge(schema, this.schema);
+  merge(schema, baseSchema);
 
   if (!this.discriminators) {
     this.discriminators = {};
   }
 
-  if (!this.schema.discriminatorMapping) {
-    this.schema.discriminatorMapping = {key: key, value: null, isRoot: true};
+  if (!baseSchema.discriminatorMapping) {
+    baseSchema.discriminatorMapping = {key: key, value: null, isRoot: true};
   }
 
   if (this.discriminators[name]) {

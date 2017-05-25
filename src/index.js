@@ -244,7 +244,19 @@ module.exports = {
 
         if (arguments[1] instanceof connection.Schema ||
           _.isPlainObject(arguments[1])) {
-          return this.model(arguments[0], arguments[1]);
+          let baseSchema, model, schema;
+
+          if (arguments[1].options.tenantPlugins) {
+            schema = arguments[1];
+            baseSchema = schema.clone();
+            schema.options.tenantPlugins.forEach(function(plugin) {
+              schema.plugin(plugin.register, plugin.options);
+            });
+          }
+
+          model = this.model(arguments[0], schema);
+          model.baseSchema = baseSchema;
+          return model;
         } else {
           return make.call(this, arguments[0], arguments[1]);
         }
