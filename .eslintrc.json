@@ -1,0 +1,63 @@
+{
+  "extends": [
+    "eslint:recommended",
+    "google"
+  ],
+  "rules": {
+    "strict": 0,
+    "prefer-rest-params": "off",
+    "one-var": [
+      "warn",
+      "always"
+    ],
+    "no-multi-spaces": [
+      "warn",
+      {
+        "exceptions": {
+          "Property": true,
+          "VariableDeclarator": true,
+          "ImportDeclaration": true
+        }
+      }
+    ]
+  },
+  "compilerOptions": {
+    "target": "ES6",
+    "module": "babel-eslint"
+  },
+  "env": {
+    "browser": true,
+    "node": true,
+    "es6": true,
+    "mocha": true
+  },
+  "parser": "babel-eslint",
+  "parserOptions": {
+    "ecmaVersion": 6,
+    "sourceType": "module",
+    "ecmaFeatures": {
+      "arrowFunctions": true,
+      "binaryLiterals": true,
+      "blockBindings": true,
+      "classes": true,
+      "defaultParams": true,
+      "destructuring": true,
+      "forOf": true,
+      "generators": true,
+      "modules": true,
+      "objectLiteralComputedProperties": true,
+      "objectLiteralDuplicateProperties": true,
+      "objectLiteralShorthandMethods": true,
+      "objectLiteralShorthandProperties": true,
+      "octalLiterals": true,
+      "regexUFlag": true,
+      "regexYFlag": true,
+      "spread": true,
+      "superInFunctions": true,
+      "templateStrings": true,
+      "unicodeCodePointEscapes": true,
+      "globalReturn": true,
+      "experimentalObjectRestSpread": true
+    }
+  }
+}

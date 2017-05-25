@@ -1,6 +1,6 @@
 {
   "name": "mongoose-multitenancy",
-  "version": "0.1.14",
+  "version": "0.1.15",
   "description": "The best of both worlds Mongoose.discriminator & mongoose-multitenant",
   "main": "src/index.js",
   "scripts": {
@@ -32,8 +32,11 @@
   },
   "homepage": "https://github.com/jorgecuesta/mongoose-multitenancy#readme",
   "devDependencies": {
+    "babel-eslint": "^7.2.3",
     "chai": "^3.5.0",
     "coveralls": "^2.11.9",
+    "eslint": "^3.19.0",
+    "eslint-config-google": "^0.7.1",
     "istanbul": "^0.4.3",
     "mocha": "^2.5.3",
     "mocha-mongoose": "^1.2.0",
@@ -50,6 +53,7 @@
   },
   "dependencies": {
     "async": "^2.0.0-rc.5",
+    "debug": "^2.6.8",
     "mongoose-locale": "^1.0.4"
   }
 }
