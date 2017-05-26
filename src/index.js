@@ -38,7 +38,7 @@ module.exports = {
       this.connection = options.connection;
     } else this.connection = mongoose;
 
-    console.log('model delimiter', this.modelDelimiter);
+    debug('model delimiter %o', this.modelDelimiter);
 
     if (this.connection.version !== mongoose.version) {
       debug(
@@ -184,25 +184,6 @@ module.exports = {
 
         newSchema.$tenantId = tenantId;
         newSchema.plugin(multitenantSchemaPlugin);
-
-        if (model.schema.options.tenantPlugins &&
-          _.isArray(model.schema.options.tenantPlugins)) {
-          model.schema.options.tenantPlugins.forEach(function(plugin) {
-            if (!_.isFunction(plugin.register)) {
-              throw new Error([
-                'tenantPlugins should be an array with object. Those objects',
-                ' should have register key with plugin function and optionally',
-                ' option key with options to send plugin.',
-              ].join());
-            }
-
-            newSchema.plugin(plugin.register, plugin.options);
-          });
-        } else if (model.schema.options.tenantPlugins) {
-          throw new Error([
-            'tenantPlugins should be an array.',
-          ].join());
-        }
 
         newModel = model.discriminator(tenantModelName, newSchema);
 

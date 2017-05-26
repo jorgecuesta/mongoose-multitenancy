@@ -2,7 +2,8 @@
  * Created by jorgecuesta on 6/6/16.
  */
 let mongoose = require('mongoose'),
-    utils    = require('mongoose/lib/utils');
+    utils    = require('mongoose/lib/utils'),
+    _        = require('lodash');
 
 mongoose.Model.discriminator = function discriminator(name, schema) {
   // Using this because if you want register tenant plugins we need know
@@ -89,6 +90,25 @@ mongoose.Model.discriminator = function discriminator(name, schema) {
 
   // merges base schema into new discriminator schema and sets new type field.
   merge(schema, baseSchema);
+
+  if (this.schema.options.tenantPlugins &&
+    _.isArray(this.schema.options.tenantPlugins)) {
+    this.schema.options.tenantPlugins.forEach(function(plugin) {
+      if (!_.isFunction(plugin.register)) {
+        throw new Error([
+          'tenantPlugins should be an array with object. Those objects',
+          ' should have register key with plugin function and optionally',
+          ' option key with options to send plugin.',
+        ].join());
+      }
+
+      schema.plugin(plugin.register, plugin.options);
+    });
+  } else if (this.schema.options.tenantPlugins) {
+    throw new Error([
+      'tenantPlugins should be an array.',
+    ].join());
+  }
 
   if (!this.discriminators) {
     this.discriminators = {};
