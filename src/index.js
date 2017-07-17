@@ -158,7 +158,6 @@ module.exports = {
       };
 
       make = function(tenantId, modelName) {
-
         let model, pre, preModelName, tenantCollectionName, tenantModelName,
             uniq, _i, _len, newSchema, newModel;
 
@@ -239,15 +238,14 @@ module.exports = {
           modelName = arguments[0].slice(tenantId.length + 1);
           return make.call(this, tenantId, modelName);
         }
-
       } else if (arguments.length === 2) {
-
         if (arguments[1] instanceof connection.Schema ||
           _.isPlainObject(arguments[1])) {
           let baseSchema, model, schema = arguments[1];
 
           if (arguments[1].options.tenantPlugins) {
             baseSchema = schema.clone();
+            baseSchema.virtuals = schema.virtuals;
             schema.options.tenantPlugins.forEach(function(plugin) {
               schema.plugin(plugin.register, plugin.options);
             });
