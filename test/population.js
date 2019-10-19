@@ -116,7 +116,7 @@ describe('Multitenancy', function() {
           },
           b_c: [
             'a_b', function(results, done) {
-              b.c.push(c._id);
+              b.c = c._id;
               b.save(done);
             },
           ],

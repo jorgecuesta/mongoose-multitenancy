@@ -81,8 +81,10 @@ mongoose.Model.discriminator = function discriminator(name, schema) {
       schema.options._id = _id;
     }
 
-    schema.callQueue = baseSchema.callQueue.concat(
-      schema.callQueue.slice(schema._defaultMiddleware.length));
+    if(schema._defaultMiddleware){
+      schema.callQueue = baseSchema.callQueue.concat(
+        schema.callQueue.slice(schema._defaultMiddleware.length));
+      }
     schema._requiredpaths = undefined; // reset just in case
                                        // Schema#requiredPaths() was called on
                                        // either schema

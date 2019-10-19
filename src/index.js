@@ -5,12 +5,13 @@
  @author Jorge S. Cuesta <jckpo2@gmail.com>
  @co-author Jeffrey Soriano <jeffreysoriano5@gmail.com>
  */
-let mongoose, _, discriminator, modelFn, debug;
+let mongoose, _, discriminator, modelFn, debug,uuidV4 ;
 
 // Dependencies
 mongoose = require('mongoose');
 _ = require('lodash');
 debug = require('debug')('multitenancy');
+uuidV4 = require('uuid/v4');
 
 // Modules
 discriminator = require('./discriminator');
@@ -65,7 +66,7 @@ module.exports = {
         modelDelimiter      = this.modelDelimiter;
 
     connection.mtModel = function(name, schema, collectionName) {
-      let args, extendPathWithTenantId, extendSchemaWithTenantId, make,
+      let args, extendPathWithTenantId, extendSchemaWithTenantId, make, fetchModel,
           modelName, multitenantSchemaPlugin, parts, precompile = [], tenantId,
           tenants;
 
@@ -157,7 +158,31 @@ module.exports = {
         };
       };
 
-      make = function(tenantId, modelName) {
+      fetchModel = function(tenantModel,options = null){
+
+        tenants = _.sortBy(connection.mtModel.tenants, function (tenant) {
+          return tenant.length;
+        });
+
+        tenants.reverse();
+        args = arguments;
+
+        tenantId = _.find(tenants, function (tenant) {
+          return new RegExp('^' + tenant + modelDelimiter).test(args[0]);
+        });
+
+        if (!tenantId) {
+          parts = tenantModel.split(modelDelimiter);
+          modelName = parts.pop();
+          tenantId = parts.join(modelDelimiter);
+          return make.call(this, tenantId, modelName,options);
+        } else {
+          modelName = arguments[0].slice(tenantId.length + 1);
+          return make.call(this, tenantId, modelName,options);
+        }
+      };
+
+      make = function(tenantId, modelName, options = null) {
         let model, pre, preModelName, tenantCollectionName, tenantModelName,
             uniq, _i, _len, newSchema, newModel;
 
@@ -175,9 +200,25 @@ module.exports = {
         tenantCollectionName = tenantId + collectionDelimiter +
           model.collection.name;
 
+        
+        if(options != null){
+          switch (options.id){
+            case 'String':
+                newSchema = new connection.Schema({_id: { type: String, default: uuidV4 }}, {
+                  collection: tenantCollectionName,
+                });
+                break;
+            case 'Number':
+                newSchema = new connection.Schema({_id: { type: Number}}, {
+                  collection: tenantCollectionName, 
+                });
+                break;
+          }
+        } else {
         newSchema = new connection.Schema({}, {
           collection: tenantCollectionName,
         });
+      }
 
         extendSchemaWithTenantId.call(newSchema, tenantId, model.schema);
 
@@ -217,29 +258,11 @@ module.exports = {
       };
 
       if (arguments.length === 1) {
-        tenants = _.sortBy(connection.mtModel.tenants, function(tenant) {
-          return tenant.length;
-        });
-
-        tenants.reverse();
-        args = arguments;
-
-        tenantId = _.find(tenants, function(tenant) {
-          return new RegExp('^' + tenant + modelDelimiter).test(args[0]);
-        });
-
-        if (!tenantId) {
-          parts = arguments[0].split(modelDelimiter);
-          modelName = parts.pop();
-          tenantId = parts.join(modelDelimiter);
-
-          return make.call(this, tenantId, modelName);
-        } else {
-          modelName = arguments[0].slice(tenantId.length + 1);
-          return make.call(this, tenantId, modelName);
-        }
+        return fetchModel.call(this,arguments[0]);
       } else if (arguments.length === 2) {
-        if (arguments[1] instanceof connection.Schema ||
+        if(arguments[1].id && (arguments[1].id === 'String' || arguments[1].id === 'Number')){
+          return fetchModel.call(this,arguments[0],arguments[1]);
+        } else if (arguments[1] instanceof connection.Schema ||
           _.isPlainObject(arguments[1])) {
           let baseSchema, model, schema = arguments[1];
 
@@ -254,6 +277,7 @@ module.exports = {
           model = this.model(arguments[0], schema);
           model.baseSchema = baseSchema;
           return model;
+         
         } else {
           return make.call(this, arguments[0], arguments[1]);
         }
