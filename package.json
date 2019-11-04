@@ -40,7 +40,7 @@
     "istanbul": "^0.4.3",
     "mocha": "^2.5.3",
     "mocha-mongoose": "^1.2.0",
-    "mongoose": "^4.5.0",
+    "mongoose": "^5.7.5",
     "travis-cov": "^0.2.5"
   },
   "peerDependencies": {
