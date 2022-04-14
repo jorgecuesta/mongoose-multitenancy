@@ -52,7 +52,7 @@
     }
   },
   "dependencies": {
-    "async": "^2.0.0-rc.5",
+    "async": "^3.2.2",
     "debug": "^2.6.8",
     "mongoose-locale": "^1.0.4"
   }
