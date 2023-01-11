@@ -53,7 +53,7 @@
   },
   "dependencies": {
     "async": "^2.0.0-rc.5",
-    "debug": "^2.6.8",
+    "debug": "^3.1.0",
     "mongoose-locale": "^1.0.4"
   }
 }
